@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Chatbot</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #000000;
+      position: relative;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #chatbot-icon {
+      width: 50px;
+      height: 50px;
+      background-color: #4CAF50;
+      border-radius: 50%;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      color: white;
+      font-size: 24px;
+      z-index: 1000;
+    }
+
+    #chat-container {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      height: 400px;
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+    }
+
+    #chat-container header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    #chat-history {
+      flex-grow: 1;
+      height: 300px;
+      overflow-y: scroll;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .user-message {
+      text-align: right;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      margin-bottom: 5px;
+    }
+
+    .bot-message {
+      text-align: left;
+      padding: 10px;
+      background-color: #e0f0e0;
+      border-radius: 10px;
+      margin-bottom: 5px;
+    }
+
+    form {
+      display: flex;
+      margin-top: 10px;
+    }
+
+    input {
+      flex-grow: 1;
+      margin-right: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="chatbot-icon">💬</div>
+  <div id="chat-container">
+    <header>
+      <h2>AI Chatbot</h2>
+      <button id="close-chatbot" style="background: none; border: none; font-size: 24px; cursor: pointer;color: red;">&times;</button>
+    </header>
+    <div id="chat-history"></div>
+    <form id="chat-form">
+      <input type="text" id="user-input" placeholder="Enter your message">
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <script>
+    const chatHistory = document.getElementById('chat-history');
+    const userInput = document.getElementById('user-input');
+    const form = document.getElementById('chat-form');
+    const chatbotIcon = document.getElementById('chatbot-icon');
+    const chatContainer = document.getElementById('chat-container');
+    const closeChatbot = document.getElementById('close-chatbot');
+
+    chatbotIcon.addEventListener('click', () => {
+      chatContainer.style.display = 'flex';
+    });
+
+    closeChatbot.addEventListener('click', () => {
+      chatContainer.style.display = 'none';
+    });
+
+    async function sendMessage() {
+      const userMessage = userInput.value;
+      userInput.value = ''; // Clear input field
+
+      // Display the user message immediately
+      chatHistory.innerHTML += `<div class="user-message">${userMessage}</div>`;
+      chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom of the chat history
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userInput: userMessage }),
+        });
+
+        const data = await response.json();
+        const botMessage = data.response;
+
+        // Display the bot message when it arrives
+        chatHistory.innerHTML += `<div class="bot-message">${botMessage}</div>`;
+        chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom of the chat history
+      } catch (error) {
+        console.error('Error:', error);
+        // Handle errors gracefully, e.g., display an error message to the user
+        chatHistory.innerHTML += `<div class="bot-message">Error: Unable to fetch response. Please try again later.</div>`;
+        chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom of the chat history
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault(); // Prevent form submission
+      sendMessage();
+    });
+  </script>
+</body>
+
+</html>
